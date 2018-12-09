@@ -29,7 +29,7 @@ const getData = num =>
     faker.internet.email(),
     faker.address.country(),
     faker.address.state(),
-    faker.random.boolean(),
+    faker.random.boolean().toString(),
     getImageIndex(),
     faker.date.recent(60).toDateString(),
     faker.internet.url(),

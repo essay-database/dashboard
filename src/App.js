@@ -1,4 +1,5 @@
 import React, { PureComponent } from "react";
+import PropTypes from "prop-types";
 import MUIDataTable from "mui-datatables";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
@@ -12,17 +13,10 @@ import MenuItem from "@material-ui/core/MenuItem";
 import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import Switch from "@material-ui/core/Switch";
-import getData, {
-  columns,
-  years,
-  colleges,
-  statuses,
-  countries,
-  states
-} from "./data";
-import "./app.css";
+import { withStyles } from "@material-ui/core/styles";
+import getData, { columns, years, statuses, countries, states } from "./data";
 
-export default class App extends PureComponent {
+class App extends PureComponent {
   state = {
     open: false,
     data: [],
@@ -75,7 +69,7 @@ export default class App extends PureComponent {
       email,
       country,
       state,
-      featured,
+      featured: Boolean(featured),
       image,
       date,
       source,
@@ -143,20 +137,12 @@ export default class App extends PureComponent {
           columns={columns}
           options={options}
         />
-        <Dialog open={open} onClose={this.handleClose}>
+        <Dialog open={open} onClose={this.handleClose} fullWidth maxWidth="xl">
           <DialogTitle>Edit Essay</DialogTitle>
           <DialogContent>
-            <form className="container">
+            <form>
               <fieldset>
-                <legend>essay</legend>
-                <TextField
-                  label="id"
-                  type="text"
-                  value={id}
-                  required
-                  fullWidth
-                  disabled
-                />
+                <legend>Essay</legend>
                 <TextField
                   onChange={this.handleChangeText("essay")}
                   label="essay"
@@ -177,20 +163,15 @@ export default class App extends PureComponent {
                   required
                   fullWidth
                 />
-                <FormControl className="select" required fullWidth>
-                  <InputLabel>college</InputLabel>
-                  <Select
-                    value={college}
-                    onChange={this.handleChangeText("college")}
-                  >
-                    {colleges.map((college, idx) => (
-                      <MenuItem key={idx} value={college}>
-                        {college}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-                <FormControl className="select" required fullWidth>
+                <TextField
+                  onChange={this.handleChangeText("college")}
+                  label="college"
+                  type="text"
+                  value={college}
+                  required
+                  fullWidth
+                />
+                <FormControl required>
                   <InputLabel>Year</InputLabel>
                   <Select value={year} onChange={this.handleChangeText("year")}>
                     {years.map((year, idx) => (
@@ -200,7 +181,7 @@ export default class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl className="select" required fullWidth>
+                <FormControl required>
                   <InputLabel>status</InputLabel>
                   <Select
                     value={status}
@@ -225,28 +206,13 @@ export default class App extends PureComponent {
                   fullWidth
                 />
                 <TextField
-                  onChange={this.handleChangeText("email")}
                   label="email"
                   type="email"
                   value={email}
-                  required
+                  disabled
                   fullWidth
                 />
-                <FormControl className="select" required fullWidth>
-                  <InputLabel>status</InputLabel>
-                  <Select
-                    value={status}
-                    onChange={this.handleChangeText("status")}
-                  >
-                    {statuses.map((status, idx) => (
-                      <MenuItem key={idx} value={status}>
-                        {status}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-
-                <FormControl className="select" required fullWidth>
+                <FormControl required>
                   <InputLabel>country</InputLabel>
                   <Select
                     value={country}
@@ -259,8 +225,7 @@ export default class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-
-                <FormControl className="select" required fullWidth>
+                <FormControl required>
                   <InputLabel>state</InputLabel>
                   <Select
                     value={state}
@@ -275,7 +240,15 @@ export default class App extends PureComponent {
                 </FormControl>
               </fieldset>
               <fieldset>
-                <legend>meta</legend>
+                <legend>Meta</legend>
+                <TextField
+                  label="id"
+                  type="text"
+                  value={id}
+                  required
+                  fullWidth
+                  disabled
+                />
                 <FormControlLabel
                   control={
                     <Switch
@@ -286,7 +259,6 @@ export default class App extends PureComponent {
                     />
                   }
                   label="featured"
-                  labelPlacement="top"
                 />
                 <TextField
                   onChange={this.handleChangeText("image")}
@@ -297,11 +269,10 @@ export default class App extends PureComponent {
                   fullWidth
                 />
                 <TextField
-                  onChange={this.handleChangeText("date")}
                   label="date"
-                  type="date"
+                  type="text"
                   value={date}
-                  required
+                  disabled
                   fullWidth
                 />
                 <TextField
@@ -343,3 +314,16 @@ export default class App extends PureComponent {
     );
   }
 }
+
+const styles = theme => ({
+  formControl: {
+    margin: theme.spacing.unit,
+    minWidth: 120
+  }
+});
+
+App.propTypes = {
+  classes: PropTypes.object.isRequired
+};
+
+export default withStyles(styles)(App);

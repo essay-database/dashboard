@@ -3,13 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "react": "^16.6.3",
-    "react-dom": "^16.6.3",
-    "react-scripts": "2.1.1",
     "@material-ui/core": "3.2.2",
     "@material-ui/icons": "3.0.1",
     "faker": "4.1.0",
-    "mui-datatables": "2.0.0-beta-35"
+    "mui-datatables": "2.0.0-beta-35",
+    "prop-types": "^15.6.2",
+    "react": "^16.6.3",
+    "react-dom": "^16.6.3",
+    "react-scripts": "2.1.1"
   },
   "scripts": {
     "start": "react-scripts start",
