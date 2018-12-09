@@ -1,75 +1,102 @@
-import React, {PureComponent} from "react";
+import React, { PureComponent } from "react";
 import MUIDataTable from "mui-datatables";
-import faker from "faker";
-import universities from "./universities.json";
-import images from "./picsum";
-
-const TAGS = ["new", "featured", "popular"];
-const UNIVERSITIES = universities.map(({ institution }) => institution);
-const APPLICATION_STATUS = ["accepted", "rejected", "waitlisted", "pending"];
-
-const getTag = () => faker.random.arrayElement(TAGS);
-const getImageIndex = (isSmall = true) =>
-  faker.random.arrayElement(images.map(img => img.id));
-const getYear = () => faker.date.past(20, new Date()).getFullYear();
-const getStatus = () => faker.random.arrayElement(APPLICATION_STATUS);
-const getCollege = () => faker.random.arrayElement(UNIVERSITIES);
-
-const getData = num =>
-  Array.from(new Array(num), () => [
-    faker.random.uuid(),
-    faker.lorem
-      .paragraphs(faker.random.number({ min: 5, max: 15 }))
-      .substring(0, 20) + "...",
-    faker.lorem.sentences(2).substring(0, 20) + "...",
-    getCollege(),
-    getYear(),
-    getStatus(),
-    faker.name.findName(),
-    faker.internet.email(),
-    faker.address.country(),
-    faker.address.state(),
-    getTag(),
-    getImageIndex(),
-    faker.date.recent(60).toDateString(),
-    faker.internet.url(),
-    faker.lorem.paragraph().substring(0, 20) + "..."
-  ]);
+import Button from "@material-ui/core/Button";
+import TextField from "@material-ui/core/TextField";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import FormControlLabel from "@material-ui/core/FormControlLabel";
+import Switch from "@material-ui/core/Switch";
+import getData, { columns } from "./data";
 
 export default class App extends PureComponent {
+  state = {
+    open: false,
+    data: [],
+    row: null
+  };
+
+  handleClickOpen = row => {
+    this.setState({ open: true, row });
+  };
+
+  handleClose = () => {
+    this.setState({ open: false, row: null });
+  };
+
+  onRowClick = rowData => {
+    this.handleClickOpen(rowData);
+  };
+
+  componentDidMount() {
+    this.setState({
+      data: getData(69)
+    });
+  }
+
+  handleChange = name => e => {
+    this.setState({ [name]: e.target.checked });
+  };
+
   render() {
-    const columns = [
-      "id",
-      "essay",
-      "prompt",
-      "college",
-      "year",
-      "status",
-      "name",
-      "email",
-      "country",
-      "state",
-      "tag",
-      "image",
-      "date",
-      "source",
-      "comments"
-    ];
-
-    const data = getData(69);
-
     const options = {
       filterType: "dropdown",
-      responsive: "scroll"
+      responsive: "scroll",
+      onRowClick: this.onRowClick
     };
 
+    const { data, open } = this.state;
     return (
-      <MUIDataTable
-        title={"Essays"}
-        data={data}
-        columns={columns}
-        options={options}
-      />
+      <>
+        <MUIDataTable
+          title={"Essays"}
+          data={data}
+          columns={columns}
+          options={options}
+        />
+        <Dialog open={open} onClose={this.handleClose}>
+          <DialogTitle>Edit essay</DialogTitle>
+          <DialogContent>
+            <DialogContentText>Essay details</DialogContentText>
+            <TextField
+              autoFocus
+              margin="dense"
+              id="name"
+              label="name"
+              type="text"
+              fullWidth
+            />
+            <TextField
+              label="Multiline"
+              multiline
+              rows="4"
+              defaultValue="Default Value"
+              margin="normal"
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={this.state.checkedB}
+                  onChange={this.handleChange("featured")}
+                  value="featured"
+                  color="primary"
+                />
+              }
+              label="featured"
+            />
+          </DialogContent>
+          <DialogActions>
+            <Button onClick={this.handleClose} color="primary">
+              Cancel
+            </Button>
+            <Button onClick={this.handleClose} color="primary">
+              Subscribe
+            </Button>
+          </DialogActions>
+        </Dialog>
+      </>
     );
   }
 }
