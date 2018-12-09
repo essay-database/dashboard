@@ -1,16 +1,18 @@
 import faker from "faker";
 import universities from "./universities.json";
 import images from "./picsum";
+import countries from "./countries.json";
+import states from "./states.json";
 
-const TAGS = ["new", "featured", "popular"];
 const UNIVERSITIES = universities.map(({ institution }) => institution);
-const APPLICATION_STATUS = ["accepted", "rejected", "waitlisted", "pending"];
+const STATUSES = ["accepted", "rejected", "waitlisted", "pending"];
+const STATES = states.map(({ name }) => name);
+const COUNTRIES = countries.map(({ name }) => name);
 
-const getTag = () => faker.random.arrayElement(TAGS);
-const getImageIndex = (isSmall = true) =>
+const getImageIndex = () =>
   faker.random.arrayElement(images.map(img => img.id));
 const getYear = () => faker.date.past(20, new Date()).getFullYear();
-const getStatus = () => faker.random.arrayElement(APPLICATION_STATUS);
+const getStatus = () => faker.random.arrayElement(STATUSES);
 const getCollege = () => faker.random.arrayElement(UNIVERSITIES);
 
 const getData = num =>
@@ -27,12 +29,22 @@ const getData = num =>
     faker.internet.email(),
     faker.address.country(),
     faker.address.state(),
-    getTag(),
+    faker.random.boolean(),
     getImageIndex(),
     faker.date.recent(60).toDateString(),
     faker.internet.url(),
-    faker.lorem.paragraph().substring(0, 20) + "..."
+    faker.lorem.paragraph().substring(0, 20) + "...",
+    faker.random.number({ min: 0, max: 100 })
   ]);
+
+export const years = Array.from(
+  Array(20),
+  (_, idx) => new Date().getFullYear() - idx
+);
+export { UNIVERSITIES as colleges };
+export { STATUSES as statuses };
+export { COUNTRIES as countries };
+export { STATES as states };
 
 export const columns = [
   "id",
@@ -45,11 +57,12 @@ export const columns = [
   "email",
   "country",
   "state",
-  "tag",
+  "featured",
   "image",
   "date",
   "source",
-  "comments"
+  "comments",
+  "views"
 ];
 
 export default getData;
