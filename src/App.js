@@ -16,6 +16,14 @@ import Switch from "@material-ui/core/Switch";
 import { withStyles } from "@material-ui/core/styles";
 import getData, { columns, years, statuses, countries, states } from "./data";
 
+const truncate = text => text.substring(0, 20) + "...";
+
+const convertToObj = (props, values) =>
+  props.reduce(
+    (acc, curr, idx) => Object.assign(acc, { [curr]: values[idx] }),
+    {}
+  );
+
 class App extends PureComponent {
   state = {
     open: false,
@@ -38,43 +46,12 @@ class App extends PureComponent {
     views: null
   };
 
-  handleClickOpen = row => {
-    const [
-      id,
-      essay,
-      prompt,
-      college,
-      year,
-      status,
-      name,
-      email,
-      country,
-      state,
-      featured,
-      image,
-      date,
-      source,
-      comments,
-      views
-    ] = row;
+  onRowClick = (_, { dataIndex }) => {
+    const data = convertToObj(columns, this.state.data[dataIndex]);
+    data.featured = Boolean(data.featured);
     this.setState({
       open: true,
-      id,
-      essay,
-      prompt,
-      college,
-      year,
-      status,
-      name,
-      email,
-      country,
-      state,
-      featured: Boolean(featured),
-      image,
-      date,
-      source,
-      comments,
-      views
+      ...data
     });
   };
 
@@ -82,14 +59,8 @@ class App extends PureComponent {
     this.setState({ open: false });
   };
 
-  onRowClick = rowData => {
-    this.handleClickOpen(rowData);
-  };
-
-  componentDidMount = () => {
-    this.setState({
-      data: getData(69)
-    });
+  handleSave = () => {
+    this.handleClose();
   };
 
   handleChangeToggle = name => e => {
@@ -100,7 +71,11 @@ class App extends PureComponent {
     this.setState({ [name]: e.target.value });
   };
 
-  handleSave = () => {};
+  componentDidMount = () => {
+    this.setState({
+      data: getData(69)
+    });
+  };
 
   render() {
     const options = {
@@ -108,7 +83,6 @@ class App extends PureComponent {
       responsive: "scroll",
       onRowClick: this.onRowClick
     };
-
     const {
       data,
       open,
@@ -129,6 +103,7 @@ class App extends PureComponent {
       comments,
       views
     } = this.state;
+    const { classes } = this.props;
     return (
       <>
         <MUIDataTable
@@ -137,7 +112,7 @@ class App extends PureComponent {
           columns={columns}
           options={options}
         />
-        <Dialog open={open} onClose={this.handleClose} fullWidth maxWidth="xl">
+        <Dialog open={open} onClose={this.handleClose} fullWidth maxWidth="lg">
           <DialogTitle>Edit Essay</DialogTitle>
           <DialogContent>
             <form>
@@ -149,7 +124,7 @@ class App extends PureComponent {
                   type="text"
                   value={essay}
                   multiline
-                  rows={5}
+                  rows={10}
                   required
                   fullWidth
                 />
@@ -163,6 +138,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                 />
+                {/* TODO autocomplete/dropdown ? */}
                 <TextField
                   onChange={this.handleChangeText("college")}
                   label="college"
@@ -171,7 +147,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                 />
-                <FormControl required>
+                <FormControl className={classes.formControl} required>
                   <InputLabel>Year</InputLabel>
                   <Select value={year} onChange={this.handleChangeText("year")}>
                     {years.map((year, idx) => (
@@ -181,7 +157,7 @@ class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl required>
+                <FormControl className={classes.formControl} required>
                   <InputLabel>status</InputLabel>
                   <Select
                     value={status}
@@ -212,7 +188,7 @@ class App extends PureComponent {
                   disabled
                   fullWidth
                 />
-                <FormControl required>
+                <FormControl className={classes.formControl} required>
                   <InputLabel>country</InputLabel>
                   <Select
                     value={country}
@@ -225,7 +201,7 @@ class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl required>
+                <FormControl className={classes.formControl} required>
                   <InputLabel>state</InputLabel>
                   <Select
                     value={state}
@@ -304,8 +280,10 @@ class App extends PureComponent {
             </form>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.handleClose}>Cancel</Button>
-            <Button onClick={this.handleClose} color="primary">
+            <Button onClick={this.handleClose} className={classes.cancel}>
+              Cancel
+            </Button>
+            <Button onClick={this.handleSave} color="primary">
               save
             </Button>
           </DialogActions>
@@ -319,6 +297,9 @@ const styles = theme => ({
   formControl: {
     margin: theme.spacing.unit,
     minWidth: 120
+  },
+  cancel: {
+    color: "#757575"
   }
 });
 

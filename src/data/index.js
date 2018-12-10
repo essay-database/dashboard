@@ -18,10 +18,8 @@ const getCollege = () => faker.random.arrayElement(UNIVERSITIES);
 const getData = num =>
   Array.from(new Array(num), () => [
     faker.random.uuid(),
-    faker.lorem
-      .paragraphs(faker.random.number({ min: 5, max: 15 }))
-      .substring(0, 20) + "...",
-    faker.lorem.sentences(2).substring(0, 20) + "...",
+    faker.lorem.paragraphs(faker.random.number({ min: 5, max: 15 })),
+    faker.lorem.sentences(2),
     getCollege(),
     getYear(),
     getStatus(),
@@ -33,7 +31,7 @@ const getData = num =>
     getImageIndex(),
     faker.date.recent(60).toDateString(),
     faker.internet.url(),
-    faker.lorem.paragraph().substring(0, 20) + "...",
+    faker.lorem.paragraph(),
     faker.random.number({ min: 0, max: 100 })
   ]);
 
@@ -41,6 +39,7 @@ export const years = Array.from(
   Array(20),
   (_, idx) => new Date().getFullYear() - idx
 );
+
 export { UNIVERSITIES as colleges };
 export { STATUSES as statuses };
 export { COUNTRIES as countries };
