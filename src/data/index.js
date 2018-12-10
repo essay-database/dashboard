@@ -15,6 +15,7 @@ const getYear = () => faker.date.past(20, new Date()).getFullYear();
 const getStatus = () => faker.random.arrayElement(STATUSES);
 const getCollege = () => faker.random.arrayElement(UNIVERSITIES);
 
+//  String or Number types
 const getData = num =>
   Array.from(new Array(num), () => [
     faker.random.uuid(),
