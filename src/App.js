@@ -1,5 +1,6 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
+import axios from "axios";
 import MUIDataTable from "mui-datatables";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
@@ -14,52 +15,103 @@ import FormControl from "@material-ui/core/FormControl";
 import Select from "@material-ui/core/Select";
 import Switch from "@material-ui/core/Switch";
 import { withStyles } from "@material-ui/core/styles";
-import "./app.css";
 import getData, { columns, years, statuses, countries, states } from "./data";
+import isEqual from "lodash/isEqual";
+import "./app.css";
+
+function isString(value) {
+  return typeof value === "string" || value instanceof String;
+}
+
+function isNumber(value) {
+  return typeof value === "number" && isFinite(value);
+}
+
+const isValid = value =>
+  (isString(value) && value.length > 0) || (isNumber(value) && value > -1);
+
+const format = value => (isString(value) ? value.trim() : value);
+
+const deepClone = value => JSON.parse(JSON.stringify(value));
 
 class App extends PureComponent {
   state = {
     open: false,
     data: [],
-    dataIndex: -1
+    dataIndex: -1,
+    row: []
   };
 
+  validateRow = row => row.every(value => isValid(value));
+
+  formatRow = row => row.map(value => format(value));
+
   onRowClick = (_, { dataIndex }) => {
-    this.setState({
+    this.setState(({ data }) => ({
       open: true,
-      dataIndex
-    });
+      dataIndex,
+      row: [...data[dataIndex]]
+    }));
   };
 
   handleClose = () => {
-    this.setState({ open: false });
+    this.setState({
+      open: false
+    });
+  };
+
+  handleCancel = () => {
+    this.setState(({ data, dataIndex, row }) => {
+      if (!isEqual(row, data[dataIndex]))
+        if (window.confirm("abandon changes?")) return {};
+        else return {};
+      else return {};
+    });
   };
 
   handleSave = () => {
-    this.handleClose();
-  };
-
-  handleChangeToggle = index => e => {
-    const { checked } = e.target;
-    this.setState(({ data, dataIndex }) => {
-      data[dataIndex][index] = checked;
-      return { data: [...data] };
+    this.setState(({ dataIndex, data, row }) => {
+      if (this.validateRow(this.formatRow(row))) {
+        data[dataIndex] = row;
+        return { data: deepClone(data), open: false };
+      }
     });
   };
 
-  handleChangeText = index => e => {
-    const { value } = e.target;
-    this.setState(({ data, dataIndex }) => {
-      data[dataIndex][index] = value;
-      return { data: [...data] };
+  handleAdd = () => {
+    const row = {};
+    this.setState(data => ({
+      data: [...data, row],
+      row,
+      open: true
+    }));
+  };
+
+  handleChange = index => ({ target }) => {
+    const value = target.type === "checkbox" ? target.checked : target.value;
+    this.setState(({ row }) => {
+      row[index] = value;
+      return { row: { ...row } };
     });
   };
 
-  componentDidMount = () => {
-    this.setState({
-      data: getData(69)
-    });
+  fetchData = () => {
+    const ENDPOINT_URL = "localhost:8080/essays";
+    let results;
+    try {
+      ({ data: results } = axios.get(ENDPOINT_URL));
+    } catch (error) {
+      results = [];
+    }
+    return results;
   };
+
+  async componentDidMount() {
+    let data;
+    if (this.props.env === "prod") data = await this.fetchData();
+    else data = getData(69);
+    this.setState({ data });
+  }
 
   render() {
     const options = {
@@ -69,8 +121,7 @@ class App extends PureComponent {
       rowsPerPage: 15,
       rowsPerPageOptions: [15, 25, 50, 100]
     };
-    const { data, dataIndex, open } = this.state;
-    const row = data[dataIndex] || [];
+    const { data, row, open } = this.state;
     const [
       id,
       essay,
@@ -105,7 +156,7 @@ class App extends PureComponent {
               <fieldset>
                 <legend>Essay</legend>
                 <TextField
-                  onChange={this.handleChangeText(1)}
+                  onChange={this.handleChange(1)}
                   label="essay"
                   type="text"
                   value={essay}
@@ -113,9 +164,10 @@ class App extends PureComponent {
                   rows={10}
                   required
                   fullWidth
+                  error={!isValid(essay)}
                 />
                 <TextField
-                  onChange={this.handleChangeText(2)}
+                  onChange={this.handleChange(2)}
                   label="prompt"
                   type="text"
                   value={prompt}
@@ -124,9 +176,9 @@ class App extends PureComponent {
                   required
                   fullWidth
                 />
-                {/* TODO autocomplete/dropdown ? */}
+                {/* TODO autocomplete or dropdown ? */}
                 <TextField
-                  onChange={this.handleChangeText(3)}
+                  onChange={this.handleChange(3)}
                   label="college"
                   type="text"
                   value={college}
@@ -135,7 +187,7 @@ class App extends PureComponent {
                 />
                 <FormControl className={classes.formControl} required>
                   <InputLabel>Year</InputLabel>
-                  <Select value={year} onChange={this.handleChangeText(4)}>
+                  <Select value={year} onChange={this.handleChange(4)}>
                     {years.map((year, idx) => (
                       <MenuItem key={idx} value={year}>
                         {year}
@@ -145,7 +197,7 @@ class App extends PureComponent {
                 </FormControl>
                 <FormControl className={classes.formControl} required>
                   <InputLabel>status</InputLabel>
-                  <Select value={status} onChange={this.handleChangeText(5)}>
+                  <Select value={status} onChange={this.handleChange(5)}>
                     {statuses.map((status, idx) => (
                       <MenuItem key={idx} value={status}>
                         {status}
@@ -157,7 +209,7 @@ class App extends PureComponent {
               <fieldset>
                 <legend>Author</legend>
                 <TextField
-                  onChange={this.handleChangeText(6)}
+                  onChange={this.handleChange(6)}
                   label="name"
                   type="text"
                   value={name}
@@ -173,7 +225,7 @@ class App extends PureComponent {
                 />
                 <FormControl className={classes.formControl} required>
                   <InputLabel>country</InputLabel>
-                  <Select value={country} onChange={this.handleChangeText(8)}>
+                  <Select value={country} onChange={this.handleChange(8)}>
                     {countries.map((country, idx) => (
                       <MenuItem key={idx} value={country}>
                         {country}
@@ -183,7 +235,7 @@ class App extends PureComponent {
                 </FormControl>
                 <FormControl className={classes.formControl} required>
                   <InputLabel>state</InputLabel>
-                  <Select value={state} onChange={this.handleChangeText(9)}>
+                  <Select value={state} onChange={this.handleChange(9)}>
                     {states.map((state, idx) => (
                       <MenuItem key={idx} value={state}>
                         {state}
@@ -206,14 +258,14 @@ class App extends PureComponent {
                   control={
                     <Switch
                       checked={Boolean(featured)}
-                      onChange={this.handleChangeToggle(10)}
+                      onChange={this.handleChange(10)}
                       color="primary"
                     />
                   }
                   label="featured"
                 />
                 <TextField
-                  onChange={this.handleChangeText(11)}
+                  onChange={this.handleChange(11)}
                   label="image"
                   type="number"
                   value={image}
@@ -228,7 +280,7 @@ class App extends PureComponent {
                   fullWidth
                 />
                 <TextField
-                  onChange={this.handleChangeText(13)}
+                  onChange={this.handleChange(13)}
                   label="source"
                   type="url"
                   value={source}
@@ -236,7 +288,7 @@ class App extends PureComponent {
                   fullWidth
                 />
                 <TextField
-                  onChange={this.handleChangeText(14)}
+                  onChange={this.handleChange(14)}
                   label="comments"
                   type="text"
                   value={comments}
@@ -256,10 +308,14 @@ class App extends PureComponent {
             </form>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.handleClose} className={classes.cancel}>
+            <Button onClick={this.handleCancel} color="primary">
               Cancel
             </Button>
-            <Button onClick={this.handleSave} color="primary">
+            <Button
+              onClick={this.handleSave}
+              color="primary"
+              disabled={!this.validateRow(row)}
+            >
               save
             </Button>
           </DialogActions>
@@ -273,14 +329,12 @@ const styles = theme => ({
   formControl: {
     margin: theme.spacing.unit,
     minWidth: 120
-  },
-  cancel: {
-    color: "#9E9E9E"
   }
 });
 
 App.propTypes = {
-  classes: PropTypes.object.isRequired
+  classes: PropTypes.object.isRequired,
+  env: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(App);
