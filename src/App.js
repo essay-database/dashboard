@@ -2,9 +2,11 @@ import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
 import axios from "axios";
 import MUIDataTable from "mui-datatables";
+import AddIcon from "@material-ui/icons/Add";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
+import Fab from "@material-ui/core/Fab";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
 import DialogTitle from "@material-ui/core/DialogTitle";
@@ -19,7 +21,7 @@ import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
 import "./app.css";
 
-function log(action, value) {
+function logState(action, value) {
   console.log(action, value);
 }
 
@@ -56,8 +58,11 @@ class App extends PureComponent {
 
   formatRow = row => row.map(value => format(value));
 
-  createRow = row => {
+  createRow = () => {
+    const row = Array(16);
     row[0] = Date.now().toString();
+    row[9] = ""; // state
+    row[10] = false;
     row[12] = new Date().toDateString();
     row[15] = 0;
     return row;
@@ -65,7 +70,7 @@ class App extends PureComponent {
 
   onRowClick = (_, { dataIndex }) => {
     this.setState(({ data }) => {
-      log("click", this.state);
+      logState("click", this.state);
       return {
         open: true,
         dataIndex,
@@ -74,22 +79,22 @@ class App extends PureComponent {
     });
   };
 
+  handleConfirm = () => window.confirm("abandon changes?");
+
   handleAdd = () => {
-    this.setState(data => {
-      log("add", this.state);
+    this.setState(({ data }) => {
+      logState("add", this.state);
       return {
-        row: Array(16),
+        row: this.createRow(),
         open: true,
         dataIndex: data.length
       };
     });
   };
 
-  handleConfirm = () => window.confirm("abandon changes?");
-
   handleClose = () => {
     this.setState(({ data, dataIndex, row }) => {
-      log("close", this.state);
+      logState("close", this.state);
       if (dataIndex < data.length) {
         if (!isEqual(row, data[dataIndex])) {
           if (this.handleConfirm()) return { open: false };
@@ -97,7 +102,6 @@ class App extends PureComponent {
           return { open: false };
         }
       } else {
-        if (isEqual(row, Array(16))) return { open: false };
         if (this.handleConfirm()) return { open: false };
       }
     });
@@ -105,7 +109,7 @@ class App extends PureComponent {
 
   handleSave = () => {
     this.setState(({ dataIndex, data, row }) => {
-      log("save", this.state);
+      logState("save", this.state);
       let update = false;
       if (dataIndex < data.length) {
         if (this.validateRow(this.formatRow(row))) {
@@ -113,9 +117,8 @@ class App extends PureComponent {
           update = true;
         }
       } else {
-        const newRow = this.createRow(row);
-        if (this.validateRow(this.formatRow(newRow))) {
-          data.unshift(newRow);
+        if (this.validateRow(this.formatRow(row))) {
+          data.unshift(row);
           update = true;
         }
       }
@@ -126,6 +129,7 @@ class App extends PureComponent {
   handleChange = index => ({ target }) => {
     const value = target.type === "checkbox" ? target.checked : target.value;
     this.setState(({ row }) => {
+      logState("change", this.state);
       row[index] = value;
       return { row: [...row] };
     });
@@ -157,7 +161,7 @@ class App extends PureComponent {
       rowsPerPage: 15,
       rowsPerPageOptions: [15, 25, 50, 100]
     };
-    const { data, row, open, dataIndex } = this.state;
+    const { data, row, open } = this.state;
     const [
       id,
       essay,
@@ -178,15 +182,14 @@ class App extends PureComponent {
     ] = row;
     const { classes } = this.props;
     return (
-      <>
-        <Button
-          variant="contained"
-          color="primary"
+      <div className={classes.root}>
+        <Fab
           className={classes.button}
+          color="primary"
           onClick={this.handleAdd}
         >
-          new
-        </Button>
+          <AddIcon />
+        </Fab>
         <MUIDataTable
           title="Essays Dashboard"
           data={data}
@@ -280,7 +283,6 @@ class App extends PureComponent {
                   label="email"
                   type="email"
                   value={email}
-                  disabled={dataIndex < data.length}
                   required
                   fullWidth
                   error={!isValid(name)}
@@ -304,6 +306,7 @@ class App extends PureComponent {
                   className={classes.formControl}
                   required
                   error={!isValid(state)}
+                  hidden={country !== "United States"}
                 >
                   <InputLabel shrink>state</InputLabel>
                   <Select value={state} onChange={this.handleChange(9)}>
@@ -396,7 +399,7 @@ class App extends PureComponent {
             </Button>
           </DialogActions>
         </Dialog>
-      </>
+      </div>
     );
   }
 }
@@ -407,7 +410,14 @@ const styles = theme => ({
     minWidth: 120
   },
   button: {
-    margin: theme.spacing.unit
+    margin: theme.spacing.unit,
+    position: "absolute",
+    bottom: 80,
+    right: 20,
+    zIndex: 1001
+  },
+  root: {
+    position: "relative"
   }
 });
 
