@@ -61,7 +61,7 @@ class App extends PureComponent {
   createRow = () => {
     const row = Array(16);
     row[0] = Date.now().toString();
-    row[9] = ""; // state
+    row[9] = "N/A";
     row[10] = false;
     row[12] = new Date().toDateString();
     row[15] = 0;
@@ -285,7 +285,7 @@ class App extends PureComponent {
                   value={email}
                   required
                   fullWidth
-                  error={!isValid(name)}
+                  error={!isValid(email)}
                   InputLabelProps={{ shrink: true }}
                 />
                 <FormControl
