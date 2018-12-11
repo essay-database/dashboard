@@ -52,6 +52,13 @@ class App extends PureComponent {
 
   formatRow = row => row.map(value => format(value));
 
+  createRow = row => {
+    row[0] = Date.now().toString();
+    row[12] = new Date().toDateString();
+    row[15] = 0;
+    return row;
+  };
+
   onRowClick = (_, { dataIndex }) => {
     this.setState(({ data }) => ({
       open: true,
@@ -62,7 +69,7 @@ class App extends PureComponent {
 
   handleAdd = () => {
     this.setState(data => ({
-      row: Array(data[0] ? data[0].length : 0),
+      row: Array(16),
       open: true,
       dataIndex: data.length
     }));
@@ -83,8 +90,9 @@ class App extends PureComponent {
 
   handleSave = () => {
     this.setState(({ dataIndex, data, row }) => {
+      const newRow = this.createRow(row);
       if (this.validateRow(this.formatRow(row))) {
-        if (dataIndex === data.length) data.push(row);
+        if (dataIndex === data.length) data.push(newRow);
         else data[dataIndex] = row;
         return { data: deepClone(data), open: false };
       }
@@ -125,7 +133,7 @@ class App extends PureComponent {
       rowsPerPage: 15,
       rowsPerPageOptions: [15, 25, 50, 100]
     };
-    const { data, row, open } = this.state;
+    const { data, row, open, dataIndex } = this.state;
     const [
       id,
       essay,
@@ -240,11 +248,14 @@ class App extends PureComponent {
                   error={!isValid(name)}
                 />
                 <TextField
+                  onChange={this.handleChange(7)}
                   label="email"
                   type="email"
                   value={email}
-                  disabled
+                  disabled={dataIndex < data.length}
+                  required
                   fullWidth
+                  error={!isValid(name)}
                 />
                 <FormControl
                   className={classes.formControl}
