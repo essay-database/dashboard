@@ -27,8 +27,14 @@ function isNumber(value) {
   return typeof value === "number" && isFinite(value);
 }
 
+function isBoolean(value) {
+  return typeof value === "boolean";
+}
+
 const isValid = value =>
-  (isString(value) && value.length > 0) || (isNumber(value) && value > -1);
+  (isString(value) && value.length > 0) ||
+  (isNumber(value) && value > -1) ||
+  isBoolean(value);
 
 const format = value => (isString(value) ? value.trim() : value);
 
@@ -54,44 +60,42 @@ class App extends PureComponent {
     }));
   };
 
-  handleClose = () => {
-    this.setState({
-      open: false
-    });
+  handleAdd = () => {
+    this.setState(data => ({
+      row: Array(data[0] ? data[0].length : 0),
+      open: true,
+      dataIndex: data.length
+    }));
   };
 
-  handleCancel = () => {
+  handleClose = () => {
     this.setState(({ data, dataIndex, row }) => {
-      if (!isEqual(row, data[dataIndex]))
-        if (window.confirm("abandon changes?")) return {};
-        else return {};
-      else return {};
+      if (this.validateRow(this.formatRow(row))) {
+        if (row.length > 0)
+          if (!isEqual(row, data[dataIndex]))
+            if (window.confirm("abandon changes?")) return { open: false };
+            else return {};
+          else return { open: false };
+        else return { open: false };
+      }
     });
   };
 
   handleSave = () => {
     this.setState(({ dataIndex, data, row }) => {
       if (this.validateRow(this.formatRow(row))) {
-        data[dataIndex] = row;
+        if (dataIndex === data.length) data.push(row);
+        else data[dataIndex] = row;
         return { data: deepClone(data), open: false };
       }
     });
-  };
-
-  handleAdd = () => {
-    const row = {};
-    this.setState(data => ({
-      data: [...data, row],
-      row,
-      open: true
-    }));
   };
 
   handleChange = index => ({ target }) => {
     const value = target.type === "checkbox" ? target.checked : target.value;
     this.setState(({ row }) => {
       row[index] = value;
-      return { row: { ...row } };
+      return { row: [...row] };
     });
   };
 
@@ -143,6 +147,14 @@ class App extends PureComponent {
     const { classes } = this.props;
     return (
       <>
+        <Button
+          variant="contained"
+          color="primary"
+          className={classes.button}
+          onClick={this.handleAdd}
+        >
+          new
+        </Button>
         <MUIDataTable
           title="Essays Dashboard"
           data={data}
@@ -175,6 +187,7 @@ class App extends PureComponent {
                   rows={2}
                   required
                   fullWidth
+                  error={!isValid(prompt)}
                 />
                 {/* TODO autocomplete or dropdown ? */}
                 <TextField
@@ -184,8 +197,13 @@ class App extends PureComponent {
                   value={college}
                   required
                   fullWidth
+                  error={!isValid(college)}
                 />
-                <FormControl className={classes.formControl} required>
+                <FormControl
+                  className={classes.formControl}
+                  required
+                  error={!isValid(year)}
+                >
                   <InputLabel>Year</InputLabel>
                   <Select value={year} onChange={this.handleChange(4)}>
                     {years.map((year, idx) => (
@@ -195,7 +213,11 @@ class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl className={classes.formControl} required>
+                <FormControl
+                  className={classes.formControl}
+                  required
+                  error={!isValid(status)}
+                >
                   <InputLabel>status</InputLabel>
                   <Select value={status} onChange={this.handleChange(5)}>
                     {statuses.map((status, idx) => (
@@ -215,6 +237,7 @@ class App extends PureComponent {
                   value={name}
                   required
                   fullWidth
+                  error={!isValid(name)}
                 />
                 <TextField
                   label="email"
@@ -223,7 +246,11 @@ class App extends PureComponent {
                   disabled
                   fullWidth
                 />
-                <FormControl className={classes.formControl} required>
+                <FormControl
+                  className={classes.formControl}
+                  required
+                  error={!isValid(country)}
+                >
                   <InputLabel>country</InputLabel>
                   <Select value={country} onChange={this.handleChange(8)}>
                     {countries.map((country, idx) => (
@@ -233,7 +260,11 @@ class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl className={classes.formControl} required>
+                <FormControl
+                  className={classes.formControl}
+                  required
+                  error={!isValid(state)}
+                >
                   <InputLabel>state</InputLabel>
                   <Select value={state} onChange={this.handleChange(9)}>
                     {states.map((state, idx) => (
@@ -271,6 +302,7 @@ class App extends PureComponent {
                   value={image}
                   required
                   fullWidth
+                  error={!isValid(image)}
                 />
                 <TextField
                   label="date"
@@ -286,6 +318,7 @@ class App extends PureComponent {
                   value={source}
                   required
                   fullWidth
+                  error={!isValid(source)}
                 />
                 <TextField
                   onChange={this.handleChange(14)}
@@ -296,6 +329,7 @@ class App extends PureComponent {
                   multiline
                   rows={2}
                   required
+                  error={!isValid(comments)}
                 />
                 <TextField
                   label="views"
@@ -308,14 +342,10 @@ class App extends PureComponent {
             </form>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.handleCancel} color="primary">
+            <Button onClick={this.handleClose} color="primary">
               Cancel
             </Button>
-            <Button
-              onClick={this.handleSave}
-              color="primary"
-              disabled={!this.validateRow(row)}
-            >
+            <Button onClick={this.handleSave} color="primary">
               save
             </Button>
           </DialogActions>
@@ -329,6 +359,9 @@ const styles = theme => ({
   formControl: {
     margin: theme.spacing.unit,
     minWidth: 120
+  },
+  button: {
+    margin: theme.spacing.unit
   }
 });
 
