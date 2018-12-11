@@ -19,6 +19,10 @@ import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
 import "./app.css";
 
+function log(action, value) {
+  console.log(action, value);
+}
+
 function isString(value) {
   return typeof value === "string" || value instanceof String;
 }
@@ -60,25 +64,32 @@ class App extends PureComponent {
   };
 
   onRowClick = (_, { dataIndex }) => {
-    this.setState(({ data }) => ({
-      open: true,
-      dataIndex,
-      row: [...data[dataIndex]]
-    }));
+    this.setState(({ data }) => {
+      log("click", this.state);
+      return {
+        open: true,
+        dataIndex,
+        row: [...data[dataIndex]]
+      };
+    });
   };
 
   handleAdd = () => {
-    this.setState(data => ({
-      row: Array(16),
-      open: true,
-      dataIndex: data.length
-    }));
+    this.setState(data => {
+      log("add", this.state);
+      return {
+        row: Array(16),
+        open: true,
+        dataIndex: data.length
+      };
+    });
   };
 
   handleConfirm = () => window.confirm("abandon changes?");
 
   handleClose = () => {
     this.setState(({ data, dataIndex, row }) => {
+      log("close", this.state);
       if (dataIndex < data.length) {
         if (!isEqual(row, data[dataIndex])) {
           if (this.handleConfirm()) return { open: false };
@@ -86,6 +97,7 @@ class App extends PureComponent {
           return { open: false };
         }
       } else {
+        if (isEqual(row, Array(16))) return { open: false };
         if (this.handleConfirm()) return { open: false };
       }
     });
@@ -93,6 +105,7 @@ class App extends PureComponent {
 
   handleSave = () => {
     this.setState(({ dataIndex, data, row }) => {
+      log("save", this.state);
       let update = false;
       if (dataIndex < data.length) {
         if (this.validateRow(this.formatRow(row))) {
@@ -208,6 +221,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(prompt)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 {/* TODO autocomplete or dropdown ? */}
                 <TextField
@@ -218,13 +232,14 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(college)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <FormControl
                   className={classes.formControl}
                   required
                   error={!isValid(year)}
                 >
-                  <InputLabel>Year</InputLabel>
+                  <InputLabel shrink>Year</InputLabel>
                   <Select value={year} onChange={this.handleChange(4)}>
                     {years.map((year, idx) => (
                       <MenuItem key={idx} value={year}>
@@ -238,7 +253,7 @@ class App extends PureComponent {
                   required
                   error={!isValid(status)}
                 >
-                  <InputLabel>status</InputLabel>
+                  <InputLabel shrink>status</InputLabel>
                   <Select value={status} onChange={this.handleChange(5)}>
                     {statuses.map((status, idx) => (
                       <MenuItem key={idx} value={status}>
@@ -258,6 +273,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(name)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   onChange={this.handleChange(7)}
@@ -268,13 +284,14 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(name)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <FormControl
                   className={classes.formControl}
                   required
                   error={!isValid(country)}
                 >
-                  <InputLabel>country</InputLabel>
+                  <InputLabel shrink>country</InputLabel>
                   <Select value={country} onChange={this.handleChange(8)}>
                     {countries.map((country, idx) => (
                       <MenuItem key={idx} value={country}>
@@ -288,7 +305,7 @@ class App extends PureComponent {
                   required
                   error={!isValid(state)}
                 >
-                  <InputLabel>state</InputLabel>
+                  <InputLabel shrink>state</InputLabel>
                   <Select value={state} onChange={this.handleChange(9)}>
                     {states.map((state, idx) => (
                       <MenuItem key={idx} value={state}>
@@ -307,6 +324,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   disabled
+                  InputLabelProps={{ shrink: true }}
                 />
                 <FormControlLabel
                   control={
@@ -326,6 +344,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(image)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   label="date"
@@ -333,6 +352,7 @@ class App extends PureComponent {
                   value={date}
                   disabled
                   fullWidth
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   onChange={this.handleChange(13)}
@@ -342,6 +362,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(source)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   onChange={this.handleChange(14)}
@@ -353,6 +374,7 @@ class App extends PureComponent {
                   rows={2}
                   required
                   error={!isValid(comments)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   label="views"
@@ -360,6 +382,7 @@ class App extends PureComponent {
                   value={views}
                   fullWidth
                   disabled
+                  InputLabelProps={{ shrink: true }}
                 />
               </fieldset>
             </form>
