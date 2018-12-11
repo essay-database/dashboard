@@ -75,27 +75,38 @@ class App extends PureComponent {
     }));
   };
 
+  handleConfirm = () => window.confirm("abandon changes?");
+
   handleClose = () => {
     this.setState(({ data, dataIndex, row }) => {
-      if (this.validateRow(this.formatRow(row))) {
-        if (row.length > 0)
-          if (!isEqual(row, data[dataIndex]))
-            if (window.confirm("abandon changes?")) return { open: false };
-            else return {};
-          else return { open: false };
-        else return { open: false };
+      if (dataIndex < data.length) {
+        if (!isEqual(row, data[dataIndex])) {
+          if (this.handleConfirm()) return { open: false };
+        } else {
+          return { open: false };
+        }
+      } else {
+        if (this.handleConfirm()) return { open: false };
       }
     });
   };
 
   handleSave = () => {
     this.setState(({ dataIndex, data, row }) => {
-      const newRow = this.createRow(row);
-      if (this.validateRow(this.formatRow(row))) {
-        if (dataIndex === data.length) data.push(newRow);
-        else data[dataIndex] = row;
-        return { data: deepClone(data), open: false };
+      let update = false;
+      if (dataIndex < data.length) {
+        if (this.validateRow(this.formatRow(row))) {
+          data[dataIndex] = row;
+          update = true;
+        }
+      } else {
+        const newRow = this.createRow(row);
+        if (this.validateRow(this.formatRow(newRow))) {
+          data.unshift(newRow);
+          update = true;
+        }
       }
+      return update ? { data: deepClone(data), open: false } : null;
     });
   };
 
@@ -185,6 +196,7 @@ class App extends PureComponent {
                   required
                   fullWidth
                   error={!isValid(essay)}
+                  InputLabelProps={{ shrink: true }}
                 />
                 <TextField
                   onChange={this.handleChange(2)}
