@@ -6,6 +6,7 @@ import AddIcon from "@material-ui/icons/Add";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Dialog from "@material-ui/core/Dialog";
+import Grid from "@material-ui/core/Grid";
 import Fab from "@material-ui/core/Fab";
 import DialogActions from "@material-ui/core/DialogActions";
 import DialogContent from "@material-ui/core/DialogContent";
@@ -21,8 +22,8 @@ import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
 import "./app.css";
 
-function logState(action, value) {
-  console.log(action, value);
+function logState(action, state) {
+  console.log(action, state);
 }
 
 function isString(value) {
@@ -68,15 +69,9 @@ class App extends PureComponent {
     return row;
   };
 
-  onRowsSelect = () => {
-    logState("select", this.state);
-  };
+  handleConfirm = msg => window.confirm(msg);
 
-  onRowsDelete = () => {
-    logState("delete", this.state);
-  };
-
-  onRowClick = (_, { dataIndex }) => {
+  handleRowClick = (_, { dataIndex }) => {
     this.setState(({ data }) => {
       logState("click", this.state);
       return {
@@ -87,7 +82,18 @@ class App extends PureComponent {
     });
   };
 
-  handleConfirm = () => window.confirm("abandon changes?");
+  handleDelete = () => {
+    this.setState(({ data, dataIndex }) => {
+      logState("delete", this.state);
+      if (this.handleConfirm("are you sure?")) {
+        const newData = data.filter((_, idx) => idx !== dataIndex);
+        return {
+          data: deepClone(newData),
+          open: false
+        };
+      }
+    });
+  };
 
   handleAdd = () => {
     this.setState(({ data }) => {
@@ -105,12 +111,12 @@ class App extends PureComponent {
       logState("close", this.state);
       if (dataIndex < data.length) {
         if (!isEqual(row, data[dataIndex])) {
-          if (this.handleConfirm()) return { open: false };
+          if (this.handleConfirm("abandon changes?")) return { open: false };
         } else {
           return { open: false };
         }
       } else {
-        if (this.handleConfirm()) return { open: false };
+        if (this.handleConfirm("abandon changes?")) return { open: false };
       }
     });
   };
@@ -164,11 +170,10 @@ class App extends PureComponent {
   render() {
     const options = {
       responsive: "scroll",
-      onRowClick: this.onRowClick,
-      onRowsDelete: this.onRowsDelete,
-      onRowsSelect: this.onRowsSelect,
+      onRowClick: this.handleRowClick,
       rowsPerPage: 15,
-      rowsPerPageOptions: [15, 25, 50, 100]
+      rowsPerPageOptions: [15, 25, 50, 100],
+      selectableRows: false
     };
     const { data, row, open } = this.state;
     const [
@@ -400,12 +405,21 @@ class App extends PureComponent {
             </form>
           </DialogContent>
           <DialogActions>
-            <Button onClick={this.handleClose} color="primary">
-              Cancel
-            </Button>
-            <Button onClick={this.handleSave} color="primary">
-              save
-            </Button>
+            <Grid container justify="space-between">
+              <Grid item>
+                <Button color="secondary" onClick={this.handleDelete}>
+                  delete
+                </Button>
+              </Grid>
+              <Grid item>
+                <Button onClick={this.handleClose} color="primary">
+                  Cancel
+                </Button>
+                <Button onClick={this.handleSave} color="primary">
+                  save
+                </Button>
+              </Grid>
+            </Grid>
           </DialogActions>
         </Dialog>
       </div>
