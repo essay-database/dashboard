@@ -1,6 +1,5 @@
 import React, { PureComponent } from "react";
 import PropTypes from "prop-types";
-import axios from "axios";
 import MUIDataTable from "mui-datatables";
 import AddIcon from "@material-ui/icons/Add";
 import Button from "@material-ui/core/Button";
@@ -20,6 +19,7 @@ import Switch from "@material-ui/core/Switch";
 import { withStyles } from "@material-ui/core/styles";
 import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
+import { getEssays } from "./api";
 import "./app.css";
 
 function logState(action, state) {
@@ -55,7 +55,7 @@ class App extends PureComponent {
     row: []
   };
 
-  validateRow = row => row.every(value => isValid(value));
+  validateRow = row => isValid(row[1]);
 
   formatRow = row => row.map(value => format(value));
 
@@ -149,20 +149,9 @@ class App extends PureComponent {
     });
   };
 
-  fetchData = () => {
-    const ENDPOINT_URL = "localhost:8080/essays";
-    let results;
-    try {
-      ({ data: results } = axios.get(ENDPOINT_URL));
-    } catch (error) {
-      results = [];
-    }
-    return results;
-  };
-
   async componentDidMount() {
     let data;
-    if (this.props.env === "prod") data = await this.fetchData();
+    if (this.props.env === "prod") data = await getEssays();
     else data = getData(69);
     this.setState({ data });
   }
@@ -223,8 +212,8 @@ class App extends PureComponent {
                   value={essay}
                   multiline
                   rows={10}
-                  required
                   fullWidth
+                  required
                   error={!isValid(essay)}
                   InputLabelProps={{ shrink: true }}
                 />
@@ -235,9 +224,7 @@ class App extends PureComponent {
                   value={prompt}
                   multiline
                   rows={2}
-                  required
                   fullWidth
-                  error={!isValid(prompt)}
                   InputLabelProps={{ shrink: true }}
                 />
                 {/* TODO autocomplete or dropdown ? */}
@@ -246,16 +233,10 @@ class App extends PureComponent {
                   label="college"
                   type="text"
                   value={college}
-                  required
                   fullWidth
-                  error={!isValid(college)}
                   InputLabelProps={{ shrink: true }}
                 />
-                <FormControl
-                  className={classes.formControl}
-                  required
-                  error={!isValid(year)}
-                >
+                <FormControl className={classes.formControl}>
                   <InputLabel shrink>Year</InputLabel>
                   <Select value={year} onChange={this.handleChange(4)}>
                     {years.map((year, idx) => (
@@ -265,11 +246,7 @@ class App extends PureComponent {
                     ))}
                   </Select>
                 </FormControl>
-                <FormControl
-                  className={classes.formControl}
-                  required
-                  error={!isValid(status)}
-                >
+                <FormControl className={classes.formControl}>
                   <InputLabel shrink>status</InputLabel>
                   <Select value={status} onChange={this.handleChange(5)}>
                     {statuses.map((status, idx) => (
@@ -287,9 +264,7 @@ class App extends PureComponent {
                   label="name"
                   type="text"
                   value={name}
-                  required
                   fullWidth
-                  error={!isValid(name)}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -297,16 +272,10 @@ class App extends PureComponent {
                   label="email"
                   type="email"
                   value={email}
-                  required
                   fullWidth
-                  error={!isValid(email)}
                   InputLabelProps={{ shrink: true }}
                 />
-                <FormControl
-                  className={classes.formControl}
-                  required
-                  error={!isValid(country)}
-                >
+                <FormControl className={classes.formControl}>
                   <InputLabel shrink>country</InputLabel>
                   <Select value={country} onChange={this.handleChange(8)}>
                     {countries.map((country, idx) => (
@@ -318,8 +287,6 @@ class App extends PureComponent {
                 </FormControl>
                 <FormControl
                   className={classes.formControl}
-                  required
-                  error={!isValid(state)}
                   hidden={country !== "United States"}
                 >
                   <InputLabel shrink>state</InputLabel>
@@ -338,7 +305,6 @@ class App extends PureComponent {
                   label="id"
                   type="text"
                   value={id}
-                  required
                   fullWidth
                   disabled
                   InputLabelProps={{ shrink: true }}
@@ -358,9 +324,7 @@ class App extends PureComponent {
                   label="image"
                   type="number"
                   value={image}
-                  required
                   fullWidth
-                  error={!isValid(image)}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -376,9 +340,7 @@ class App extends PureComponent {
                   label="source"
                   type="url"
                   value={source}
-                  required
                   fullWidth
-                  error={!isValid(source)}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -389,8 +351,6 @@ class App extends PureComponent {
                   fullWidth
                   multiline
                   rows={2}
-                  required
-                  error={!isValid(comments)}
                   InputLabelProps={{ shrink: true }}
                 />
                 <TextField
@@ -445,8 +405,8 @@ const styles = theme => ({
 });
 
 App.propTypes = {
-  classes: PropTypes.object.isRequired,
-  env: PropTypes.string.isRequired
+  classes: PropTypes.object.is,
+  env: PropTypes.string.is
 };
 
 export default withStyles(styles)(App);
