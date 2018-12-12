@@ -68,6 +68,14 @@ class App extends PureComponent {
     return row;
   };
 
+  onRowsSelect = () => {
+    logState("select", this.state);
+  };
+
+  onRowsDelete = () => {
+    logState("delete", this.state);
+  };
+
   onRowClick = (_, { dataIndex }) => {
     this.setState(({ data }) => {
       logState("click", this.state);
@@ -155,9 +163,10 @@ class App extends PureComponent {
 
   render() {
     const options = {
-      filterType: "dropdown",
       responsive: "scroll",
       onRowClick: this.onRowClick,
+      onRowsDelete: this.onRowsDelete,
+      onRowsSelect: this.onRowsSelect,
       rowsPerPage: 15,
       rowsPerPageOptions: [15, 25, 50, 100]
     };
@@ -191,7 +200,7 @@ class App extends PureComponent {
           <AddIcon />
         </Fab>
         <MUIDataTable
-          title="Essays Dashboard"
+          title="Essay Dashboard"
           data={data}
           columns={columns}
           options={options}
