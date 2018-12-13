@@ -20,6 +20,7 @@ import { withStyles } from "@material-ui/core/styles";
 import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
 import { getEssays, createEssay, editEssay, deleteEssay } from "./api";
+import uuidv1 from "uuid/v1";
 import "./app.css";
 
 function logState(action, state) {
@@ -60,15 +61,24 @@ class App extends PureComponent {
   formatRow = row => row.map(value => format(value));
 
   createRow = () => {
-    const row = Array(16);
-    row[0] = Date.now().toString();
-    row[4] = new Date().getFullYear();
-    row[5] = "";
-    row[8] = "";
-    row[9] = "N/A";
-    row[10] = false;
-    row[12] = new Date().toDateString();
-    row[15] = 0;
+    const row = [
+      uuidv1(),
+      "",
+      "",
+      "",
+      new Date().getFullYear(),
+      "",
+      "",
+      "",
+      "",
+      "",
+      false.toString(),
+      -1,
+      new Date().toDateString(),
+      "",
+      "",
+      0
+    ];
     return row;
   };
 
@@ -145,7 +155,7 @@ class App extends PureComponent {
           }
         } else {
           if (this.validateRow(this.formatRow(row))) {
-            data.unshift(row);
+            data.push(row);
             update = isCreate = sync = true;
           }
         }
@@ -216,7 +226,7 @@ class App extends PureComponent {
           <AddIcon />
         </Fab>
         <MUIDataTable
-          title="Essay Dashboard"
+          title="Essays Dashboard"
           data={data}
           columns={columns}
           options={options}
