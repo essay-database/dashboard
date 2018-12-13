@@ -11,16 +11,6 @@ export const getEssays = async () => {
   return essays;
 };
 
-export const getEssay = async id => {
-  let essay;
-  try {
-    ({ data: essay } = await axios.get(ENDPOINT_URL + id));
-  } catch (error) {
-    essay = [];
-  }
-  return essay;
-};
-
 export const createEssay = async essay => {
   try {
     await axios.post(ENDPOINT_URL, essay);

@@ -19,7 +19,7 @@ import Switch from "@material-ui/core/Switch";
 import { withStyles } from "@material-ui/core/styles";
 import getData, { columns, years, statuses, countries, states } from "./data";
 import isEqual from "lodash/isEqual";
-import { getEssays } from "./api";
+import { getEssays, createEssay, editEssay, deleteEssay } from "./api";
 import "./app.css";
 
 function logState(action, state) {
@@ -83,16 +83,21 @@ class App extends PureComponent {
   };
 
   handleDelete = () => {
-    this.setState(({ data, dataIndex }) => {
-      logState("delete", this.state);
-      if (this.handleConfirm("are you sure?")) {
-        const newData = data.filter((_, idx) => idx !== dataIndex);
-        return {
-          data: deepClone(newData),
-          open: false
-        };
+    this.setState(
+      ({ data, row, dataIndex }) => {
+        logState("delete", this.state);
+        if (this.handleConfirm("are you sure?")) {
+          const newData = data.filter((_, idx) => idx !== dataIndex);
+          return {
+            data: deepClone(newData),
+            open: false
+          };
+        }
+      },
+      async () => {
+        await deleteEssay(this.state.row);
       }
-    });
+    );
   };
 
   handleAdd = () => {
@@ -122,22 +127,29 @@ class App extends PureComponent {
   };
 
   handleSave = () => {
-    this.setState(({ dataIndex, data, row }) => {
-      logState("save", this.state);
-      let update = false;
-      if (dataIndex < data.length) {
-        if (this.validateRow(this.formatRow(row))) {
-          data[dataIndex] = row;
-          update = true;
+    let isCreate = false;
+    this.setState(
+      ({ dataIndex, data, row }) => {
+        logState("save", this.state);
+        let update = false;
+        if (dataIndex < data.length) {
+          if (this.validateRow(this.formatRow(row))) {
+            data[dataIndex] = row;
+            update = true;
+          }
+        } else {
+          if (this.validateRow(this.formatRow(row))) {
+            data.unshift(row);
+            update = isCreate = true;
+          }
         }
-      } else {
-        if (this.validateRow(this.formatRow(row))) {
-          data.unshift(row);
-          update = true;
-        }
+        return update ? { data: deepClone(data), open: false } : null;
+      },
+      async () => {
+        if (isCreate) await createEssay(this.state.row);
+        else await editEssay(this.state.row);
       }
-      return update ? { data: deepClone(data), open: false } : null;
-    });
+    );
   };
 
   handleChange = index => ({ target }) => {

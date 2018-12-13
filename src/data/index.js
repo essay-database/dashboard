@@ -7,7 +7,7 @@ import states from "./states.json";
 const UNIVERSITIES = universities.map(({ institution }) => institution);
 const STATUSES = ["accepted", "rejected", "waitlisted", "pending"];
 const STATES = states.map(({ name }) => name);
-const COUNTRIES = countries.map(({ name }) => name);
+const COUNTRIES = countries.map(({ country }) => country);
 
 const getImageIndex = () =>
   faker.random.arrayElement(images.map(img => img.id));
