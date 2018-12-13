@@ -62,6 +62,9 @@ class App extends PureComponent {
   createRow = () => {
     const row = Array(16);
     row[0] = Date.now().toString();
+    row[4] = new Date().getFullYear();
+    row[5] = "";
+    row[8] = "";
     row[9] = "N/A";
     row[10] = false;
     row[12] = new Date().toDateString();
@@ -83,11 +86,13 @@ class App extends PureComponent {
   };
 
   handleDelete = () => {
+    let sync = false;
     this.setState(
-      ({ data, row, dataIndex }) => {
+      ({ data, dataIndex }) => {
         logState("delete", this.state);
         if (this.handleConfirm("are you sure?")) {
           const newData = data.filter((_, idx) => idx !== dataIndex);
+          sync = true;
           return {
             data: deepClone(newData),
             open: false
@@ -95,7 +100,7 @@ class App extends PureComponent {
         }
       },
       async () => {
-        await deleteEssay(this.state.row);
+        if (sync) await deleteEssay(this.state.row[0]);
       }
     );
   };
@@ -127,7 +132,8 @@ class App extends PureComponent {
   };
 
   handleSave = () => {
-    let isCreate = false;
+    let isCreate,
+      sync = false;
     this.setState(
       ({ dataIndex, data, row }) => {
         logState("save", this.state);
@@ -135,19 +141,22 @@ class App extends PureComponent {
         if (dataIndex < data.length) {
           if (this.validateRow(this.formatRow(row))) {
             data[dataIndex] = row;
-            update = true;
+            update = sync = true;
           }
         } else {
           if (this.validateRow(this.formatRow(row))) {
             data.unshift(row);
-            update = isCreate = true;
+            update = isCreate = sync = true;
           }
         }
         return update ? { data: deepClone(data), open: false } : null;
       },
       async () => {
-        if (isCreate) await createEssay(this.state.row);
-        else await editEssay(this.state.row);
+        const { row } = this.state;
+        if (sync) {
+          if (isCreate) await createEssay(row);
+          else await editEssay(row);
+        }
       }
     );
   };
@@ -176,7 +185,7 @@ class App extends PureComponent {
       rowsPerPageOptions: [15, 25, 50, 100],
       selectableRows: false
     };
-    const { data, row, open } = this.state;
+    const { data, row, open, dataIndex } = this.state;
     const [
       id,
       essay,
@@ -196,6 +205,7 @@ class App extends PureComponent {
       views
     ] = row;
     const { classes } = this.props;
+    const isEdit = dataIndex < data.length;
     return (
       <div className={classes.root}>
         <Fab
@@ -212,7 +222,7 @@ class App extends PureComponent {
           options={options}
         />
         <Dialog open={open} onClose={this.handleClose} fullWidth maxWidth="lg">
-          <DialogTitle>Edit Essay</DialogTitle>
+          <DialogTitle>{isEdit ? "Edit" : "Create"} Essay</DialogTitle>
           <DialogContent>
             <form>
               <fieldset>
@@ -379,7 +389,11 @@ class App extends PureComponent {
           <DialogActions>
             <Grid container justify="space-between">
               <Grid item>
-                <Button color="secondary" onClick={this.handleDelete}>
+                <Button
+                  color="secondary"
+                  onClick={this.handleDelete}
+                  disabled={!isEdit}
+                >
                   delete
                 </Button>
               </Grid>
@@ -417,8 +431,8 @@ const styles = theme => ({
 });
 
 App.propTypes = {
-  classes: PropTypes.object.is,
-  env: PropTypes.string.is
+  classes: PropTypes.object.isRequired,
+  env: PropTypes.string.isRequired
 };
 
 export default withStyles(styles)(App);

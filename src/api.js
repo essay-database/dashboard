@@ -1,4 +1,5 @@
 import axios from "axios";
+import { columns } from "./data";
 const ENDPOINT_URL = "/essays/";
 
 export const getEssays = async () => {
@@ -8,12 +9,12 @@ export const getEssays = async () => {
   } catch (error) {
     essays = [];
   }
-  return essays;
+  return essays.map(essay => convertToArray(essay));
 };
 
 export const createEssay = async essay => {
   try {
-    await axios.post(ENDPOINT_URL, essay);
+    await axios.post(ENDPOINT_URL, convertToObj(essay));
   } catch (error) {
     console.error(error);
   }
@@ -21,16 +22,24 @@ export const createEssay = async essay => {
 
 export const editEssay = async essay => {
   try {
-    await axios.put(ENDPOINT_URL + essay.id, essay);
+    await axios.put(ENDPOINT_URL + essay[0], convertToObj(essay));
   } catch (error) {
     console.error(error);
   }
 };
 
-export const deleteEssay = async essay => {
+export const deleteEssay = async id => {
   try {
-    await axios.delete(ENDPOINT_URL + essay.id, essay);
+    await axios.delete(ENDPOINT_URL + id);
   } catch (error) {
     console.error(error);
   }
 };
+
+const convertToArray = essay => Object.values(essay);
+const convertToObj = essay =>
+  columns.reduce(
+    (accum, curr, idx) =>
+      Object.assign(accum, { [curr]: essay[idx] ? essay[idx] : "" }),
+    {}
+  );
