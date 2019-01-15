@@ -1,5 +1,6 @@
 {
   "name": "essaydb-dashboard",
+  "description": "essaydb description",
   "version": "0.1.0",
   "private": true,
   "dependencies": {
